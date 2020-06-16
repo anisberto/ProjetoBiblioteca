@@ -8,10 +8,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import modelos.classes.Autor;
-import modelos.interfaces.IcrudAutor;
+import modelos.utilidades.CreateServer;
 import modelos.utilidades.GeradorID;
+import modelos.interfaces.ICRUDAutor;
 
-public class AutorPersistencia implements IcrudAutor {
+public class AutorPersistencia implements ICRUDAutor {
 
     private String nomeDoArquivoNoDisco = "";
 
@@ -27,8 +28,17 @@ public class AutorPersistencia implements IcrudAutor {
             gId.finalize();
             FileWriter fw = new FileWriter(nomeDoArquivoNoDisco, true);
             BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(autorObj.toString() + "\n");
-            bw.close();
+
+            try {
+                CreateServer comunicacao = new CreateServer();
+                comunicacao.getComunicacao().enviarMensagem("post", autorObj.getClass().getSimpleName(), autorObj.toString() + "\n");
+                comunicacao.getComunicacao().fecharConexao();
+                bw.write(autorObj.toString() + "\n");
+                bw.close();
+            } catch (Exception e) {
+                bw.write(autorObj.toString() + "\n");
+                bw.close();
+            }
         } catch (IOException errorAutor) {
             throw errorAutor;
         }
@@ -107,6 +117,21 @@ public class AutorPersistencia implements IcrudAutor {
             }
         } catch (Exception ErroListarNomeAutor) {
             throw ErroListarNomeAutor;
+        }
+        return null;
+    }
+
+    @Override
+    public Autor getIdAutor(int idAutor) throws Exception {
+        ArrayList<Autor> autores = listagem();
+        try {
+            for (Autor autoresNaLista : autores) {
+                if (autoresNaLista.getId() == idAutor) {
+                    return autoresNaLista;
+                }
+            }
+        } catch (Exception ErroListarIdAutor) {
+            throw ErroListarIdAutor;
         }
         return null;
     }

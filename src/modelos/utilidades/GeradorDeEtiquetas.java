@@ -1,19 +1,22 @@
 package modelos.utilidades;
 
-import modelos.classes.Livro;
+import controle.ExemplarControle;
+import controle.LivroControle;
+import modelos.classes.Exemplar;
+import modelos.interfaces.ICRUDExemplar;
+import modelos.interfaces.ICRUDLivro;
 
 public class GeradorDeEtiquetas {
 
     String numeroDaEtiqueta = "";
     String armario = "";
-    Livro livro = null;
+    ICRUDExemplar exemplar = new ExemplarControle("./database/exemplar.txt");
+    ICRUDLivro livro = new LivroControle("./database/livro.txt");
 
-    public GeradorDeEtiquetas(Livro livro, String numeroDaEtiqueta, String armario) {
-        this.numeroDaEtiqueta = livro.getCodigo() + "." + armario;
-    }
-
-    public GeradorDeEtiquetas(GeradorDeEtiquetas obj) {
-        this.numeroDaEtiqueta = obj.livro.getCodigo() + "." + obj.armario;
+    public GeradorDeEtiquetas(Exemplar livro, String armario) throws Exception {
+        Exemplar exemplarEtiqueta = exemplar.getExemplar(livro.getId());
+        this.numeroDaEtiqueta = "0." + exemplarEtiqueta.getLivro().getAreaDoLivro().getId() + " - "
+                + armario + " - " + exemplarEtiqueta.getLivro().getIsbn();
     }
 
     public GeradorDeEtiquetas(String codigoDoLivro, String armario) {
@@ -36,17 +39,39 @@ public class GeradorDeEtiquetas {
         this.armario = armario;
     }
 
-    public Livro getLivro() {
+    public ICRUDExemplar getExemplar() {
+        return exemplar;
+    }
+
+    public void setExemplar(ICRUDExemplar exemplar) {
+        this.exemplar = exemplar;
+    }
+
+    public ICRUDLivro getLivro() {
         return livro;
     }
 
-    public void setLivro(Livro livro) {
+    public void setLivro(ICRUDLivro livro) {
         this.livro = livro;
     }
 
     @Override
     public String toString() {
-        return this.numeroDaEtiqueta;
+        return "\n\n\n\n"
+                + "+--------------------------------------------------------------------+\n"
+                + "|      " + numeroDaEtiqueta + "                                |\n"
+                + "+--------------------------------------------------------------------+";
     }
 
 }
+
+/*
+Área de conhecimento-000 ok
+Edição do livro-111
+Localização estante-222 ok
+Ano de edição-33333333
+ID livro - 4444 ok
+ISBN - 12121 OK
+numeração final exemplo = 000-111-222-33333333-4444 - 12121
+
+ */

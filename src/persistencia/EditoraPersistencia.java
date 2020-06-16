@@ -8,10 +8,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import modelos.classes.Editora;
-import modelos.interfaces.IcrudEditora;
+import modelos.utilidades.CreateServer;
 import modelos.utilidades.GeradorID;
+import modelos.interfaces.ICRUDEditora;
 
-public class EditoraPersistencia implements IcrudEditora {
+public class EditoraPersistencia implements ICRUDEditora {
 
     private String nomeDoArquivoNoDisco;
 
@@ -27,8 +28,15 @@ public class EditoraPersistencia implements IcrudEditora {
             gId.finalize();
             FileWriter fw = new FileWriter(nomeDoArquivoNoDisco, true);
             BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(editoraObjeto.toString() + "\n");
-            bw.close();
+            try {
+                CreateServer comunicacao = new CreateServer();
+                comunicacao.getComunicacao().enviarMensagem("post", editoraObjeto.getClass().getSimpleName(), editoraObjeto.toString() + "\n");
+                comunicacao.getComunicacao().fecharConexao();
+            } catch (Exception e) {
+                bw.write(editoraObjeto.toString() + "\n");
+            } finally {
+                bw.close();
+            }
         } catch (IOException errorEditora) {
             throw errorEditora;
         }
@@ -58,6 +66,7 @@ public class EditoraPersistencia implements IcrudEditora {
     @Override
     public ArrayList<Editora> listagem() throws Exception {
         try {
+            Editora editoraLis = null;
             ArrayList<Editora> listaDeEditoras = new ArrayList<>();
 
             FileReader fr = new FileReader(nomeDoArquivoNoDisco);
@@ -69,9 +78,10 @@ public class EditoraPersistencia implements IcrudEditora {
                 int id = Integer.parseInt(vetor[0]);
                 String nome = vetor[1];
                 String descricao = vetor[2];
-                Editora editoraLis = new Editora(id, nome, descricao);
+                editoraLis = new Editora(id, nome, descricao);
                 listaDeEditoras.add(editoraLis);
             }
+
             return listaDeEditoras;
         } catch (Exception erroConsultaAutor) {
             throw erroConsultaAutor;
@@ -103,6 +113,17 @@ public class EditoraPersistencia implements IcrudEditora {
         ArrayList<Editora> editoras = listagem();
         for (Editora editoraNaLista : editoras) {
             if (editoraNaLista.getNome().equalsIgnoreCase(nomeEditora)) {
+                return editoraNaLista;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Editora getEditoraId(int idEditora) throws Exception {
+        ArrayList<Editora> editoras = listagem();
+        for (Editora editoraNaLista : editoras) {
+            if (editoraNaLista.getId() == idEditora) {
                 return editoraNaLista;
             }
         }

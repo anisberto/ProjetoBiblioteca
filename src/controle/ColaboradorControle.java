@@ -66,8 +66,8 @@ public class ColaboradorControle implements ICRUDColaborador {
     @Override
     public ArrayList<Colaborador> listagem() throws Exception {
         try {
-             ArrayList<Colaborador> listaDeContatos = colaboradorPersistencia.listagem();
-             //Comparador de Strings
+            ArrayList<Colaborador> listaDeContatos = colaboradorPersistencia.listagem();
+            //Comparador de Strings
             Comparator c = (Comparator<Colaborador>) (Colaborador o1, Colaborador o2) -> o1.getNome().compareToIgnoreCase(o2.getNome());
             //Biblioteca para ordenar por ordem alfabética
             Collections.sort(listaDeContatos, c);
@@ -76,10 +76,29 @@ public class ColaboradorControle implements ICRUDColaborador {
             throw e;
         }
     }
+
     @Override
     public Colaborador getColaborador(String nome) throws Exception {
         try {
             return colaboradorPersistencia.getColaborador(nome);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public void deletar(Colaborador colaborador) throws Exception {
+        try {
+            colaboradorPersistencia.deletar(colaborador);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public Colaborador getColaborador(int id) throws Exception {
+        try {
+            return colaboradorPersistencia.getColaborador(id);
         } catch (Exception e) {
             throw e;
         }

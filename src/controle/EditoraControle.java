@@ -2,22 +2,22 @@ package controle;
 
 import java.util.ArrayList;
 import modelos.classes.Editora;
-import modelos.interfaces.IcrudEditora;
 import persistencia.EditoraPersistencia;
+import modelos.interfaces.ICRUDEditora;
 
-public class EditoraControle implements IcrudEditora {
+public class EditoraControle implements ICRUDEditora {
 
-    private IcrudEditora objEditora = null;
+    private ICRUDEditora objEditora = null;
 
     public EditoraControle(String nomeDoArquivoNoDisco) {
         objEditora = new EditoraPersistencia(nomeDoArquivoNoDisco);
     }
 
-    public IcrudEditora getObjEditora() {
+    public ICRUDEditora getObjEditora() {
         return objEditora;
     }
 
-    public void setObjEditora(IcrudEditora objEditora) {
+    public void setObjEditora(ICRUDEditora objEditora) {
         this.objEditora = objEditora;
     }
 
@@ -63,6 +63,15 @@ public class EditoraControle implements IcrudEditora {
             return objEditora.getEditoraNome(nomeEditora);
         } catch (Exception erroEditora) {
             throw erroEditora;
+        }
+    }
+
+    @Override
+    public Editora getEditoraId(int idEditora) throws Exception {
+        try {
+            return objEditora.getEditoraId(idEditora);
+        } catch (Exception e) {
+            throw e;
         }
     }
 }

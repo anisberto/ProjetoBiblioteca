@@ -1,23 +1,68 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package uig;
 
-/**
- *
- * @author Anisb
- */
+import controle.ColaboradorControle;
+import controle.DevolucaoControle;
+import controle.EmprestimoControle;
+import controle.ExemplarControle;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import modelos.classes.Colaborador;
+import modelos.classes.Devolucao;
+import modelos.classes.Emprestimo;
+import modelos.classes.Exemplar;
+import modelos.interfaces.ICRUDColaborador;
+import modelos.interfaces.ICRUDDevolucao;
+import modelos.interfaces.ICRUDEmprestimo;
+import modelos.utilidades.ColaboradorTableModel;
+import modelos.utilidades.EmprestimosTableModel;
+import modelos.utilidades.ExemplarTableModel;
+import modelos.interfaces.ICRUDExemplar;
+import modelos.utilidades.Data;
+import modelos.utilidades.StatusReserva;
+import modelos.utilidades.TipoDeStatusEmprestimoExemplar;
+
+
 public class TelaEmprestimo extends javax.swing.JFrame {
+
+    private ICRUDColaborador controleColaborador = null;
+    private ICRUDExemplar controleExemplar = null;
+    private ICRUDEmprestimo controleEmprestimo = null;
+    private ICRUDDevolucao controleDevolucao = null;
+    private ColaboradorTableModel modelColaborador = null;
+    private ExemplarTableModel modelExemplar = null;
+    private EmprestimosTableModel modelEmprestimo = null;
+
+    private boolean editar = false;
+    private boolean salvarEmprestimo = false;
 
     /**
      * Creates new form TelaEmprestimo
      */
     public TelaEmprestimo() {
         super("Biblioteca System - Emprestimo de Livro");
-        initComponents();
-        this.setIconImage(new javax.swing.ImageIcon(getClass().getResource("/icons/livro.png")).getImage());
+        try {
+
+            initComponents();
+            controleColaborador = new ColaboradorControle("./database/colaborador.txt");
+            controleExemplar = new ExemplarControle("./database/exemplar.txt");
+            controleEmprestimo = new EmprestimoControle("./database/emprestimo.txt");
+            controleDevolucao = new DevolucaoControle("./database/devolucao.txt");
+            modelColaborador = new ColaboradorTableModel(new String[]{"Nome", "Matricula"});
+            jTableColaborador.setModel(modelColaborador);
+
+            modelExemplar = new ExemplarTableModel(new String[]{"Identificador", "Titulo", "Status"});
+            jTableExemplar.setModel(modelExemplar);
+
+            modelEmprestimo = new EmprestimosTableModel(new String[]{"Identificador", "Colaborador", "Exemplar", "Data de Empréstimo", "Data de Devolução"});
+            jTableDadosEmprestimos.setModel(modelEmprestimo);
+
+            habilitaForm(false);
+            this.setIconImage(new javax.swing.ImageIcon(getClass().getResource("/icons/livro.png")).getImage());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
     }
 
     /**
@@ -31,30 +76,36 @@ public class TelaEmprestimo extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        jPopupMenu1 = new javax.swing.JPopupMenu();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable2 = new javax.swing.JTable();
+        jTableDadosEmprestimos = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jButton5 = new javax.swing.JButton();
-        jLabel3 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
+        jTextFieldPesquisarColaborador = new javax.swing.JTextField();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTableColaborador = new javax.swing.JTable();
         jPanel3 = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        jButtonRealizarReserva = new javax.swing.JButton();
+        jButtonSair = new javax.swing.JButton();
+        jButtonVoltar = new javax.swing.JButton();
+        jButtonSalvar = new javax.swing.JButton();
+        jButtonCancelar = new javax.swing.JButton();
+        jButtonEmprestar = new javax.swing.JButton();
+        jButtonRenovarEmprestimo = new javax.swing.JButton();
+        jToggleButton3 = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
-        jButton6 = new javax.swing.JButton();
-        jTextField6 = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
-        jTextField5 = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        jTextFieldPesquisarExemplar = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jTableExemplar = new javax.swing.JTable();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        jTextFieldNomeColaborador = new javax.swing.JTextField();
+        jLabelTituloDoExemplar = new javax.swing.JLabel();
+        jTextFieldTituloDoExemplar = new javax.swing.JTextField();
+        jPanel6 = new javax.swing.JPanel();
+        jTextFieldPesquisarEmprestimo = new javax.swing.JTextField();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -71,58 +122,72 @@ public class TelaEmprestimo extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED), "Dados do Emprestimo"));
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Dados Empréstimo"));
 
-        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+        jTableDadosEmprestimos.setAutoCreateRowSorter(true);
+        jTableDadosEmprestimos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Colaborador", "Cod.: ISBN", "Data do Emprestimo", "Data de Devolução", "Multa"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
-            };
 
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+            }
+        ));
+        jTableDadosEmprestimos.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTableDadosEmprestimosMouseClicked(evt);
             }
         });
-        jScrollPane2.setViewportView(jTable2);
+        jScrollPane2.setViewportView(jTableDadosEmprestimos);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 690, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane2)
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 124, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Dados Colaborador"));
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Dado do Colaborador"));
 
-        jLabel1.setText("Colaborador");
+        jLabel1.setText("Pesquisar");
 
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+        jTextFieldPesquisarColaborador.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldPesquisarColaboradorKeyReleased(evt);
             }
         });
 
-        jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/buscaReduzida.png"))); // NOI18N
-        jButton5.setText("Buscar Colaborador");
+        jTableColaborador.setAutoCreateRowSorter(true);
+        jTableColaborador.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
 
-        jLabel3.setText("Matricula");
+            },
+            new String [] {
 
-        jLabel4.setText("OAB");
+            }
+        ));
+        jTableColaborador.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTableColaboradorMouseClicked(evt);
+            }
+        });
+        jScrollPane3.setViewportView(jTableColaborador);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -130,25 +195,10 @@ public class TelaEmprestimo extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(30, 30, 30)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(jLabel4)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addComponent(jTextField4)))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(70, 70, 70)
-                                .addComponent(jButton5)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jTextFieldPesquisarColaborador)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -157,46 +207,91 @@ public class TelaEmprestimo extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jTextFieldPesquisarColaborador, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton5)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Menu"));
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Menu"));
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/Emprestar.png"))); // NOI18N
-        jButton1.setText("Finalizar Emprestimo");
-
-        jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/Reserva.png"))); // NOI18N
-        jButton2.setText("Realizar Reserva");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        jButtonRealizarReserva.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/Reserva.png"))); // NOI18N
+        jButtonRealizarReserva.setText("Reservar");
+        jButtonRealizarReserva.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonRealizarReserva.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonRealizarReserva.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                jButtonRealizarReservaActionPerformed(evt);
             }
         });
 
-        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/Crud/Logout_37127.png"))); // NOI18N
-        jButton3.setText("Sair");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        jButtonSair.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/Crud/Logout_37127.png"))); // NOI18N
+        jButtonSair.setText("Sair");
+        jButtonSair.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonSair.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonSair.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                jButtonSairActionPerformed(evt);
             }
         });
 
-        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/Crud/1491254395-returnbackredoarrow_82934.png"))); // NOI18N
-        jButton4.setText("Voltar");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        jButtonVoltar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/Crud/1491254395-returnbackredoarrow_82934.png"))); // NOI18N
+        jButtonVoltar.setText("Voltar");
+        jButtonVoltar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonVoltar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonVoltar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                jButtonVoltarActionPerformed(evt);
+            }
+        });
+
+        jButtonSalvar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/salve-24.png"))); // NOI18N
+        jButtonSalvar.setText("Salvar");
+        jButtonSalvar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonSalvar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonSalvar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSalvarActionPerformed(evt);
+            }
+        });
+
+        jButtonCancelar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/fechar.png"))); // NOI18N
+        jButtonCancelar.setText("Cancelar");
+        jButtonCancelar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonCancelar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonCancelar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonCancelarActionPerformed(evt);
+            }
+        });
+
+        jButtonEmprestar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/Emprestar.png"))); // NOI18N
+        jButtonEmprestar.setText("Emprestar");
+        jButtonEmprestar.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonEmprestar.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonEmprestar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEmprestarActionPerformed(evt);
+            }
+        });
+
+        jButtonRenovarEmprestimo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/renovar.png"))); // NOI18N
+        jButtonRenovarEmprestimo.setText("Renovar");
+        jButtonRenovarEmprestimo.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jButtonRenovarEmprestimo.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jButtonRenovarEmprestimo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRenovarEmprestimoActionPerformed(evt);
+            }
+        });
+
+        jToggleButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/devolverlivro.png"))); // NOI18N
+        jToggleButton3.setText("Devolver");
+        jToggleButton3.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jToggleButton3.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToggleButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jToggleButton3ActionPerformed(evt);
             }
         });
 
@@ -206,40 +301,65 @@ public class TelaEmprestimo extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButtonVoltar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonSair, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonSalvar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonCancelar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonRealizarReserva, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonEmprestar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButtonRenovarEmprestimo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jToggleButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1)
-                            .addComponent(jButton2)
-                            .addComponent(jButton3))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jButtonEmprestar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonRenovarEmprestimo)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonRealizarReserva, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jToggleButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 90, Short.MAX_VALUE)
+                .addComponent(jButtonSalvar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonCancelar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonVoltar, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonSair)
                 .addContainerGap())
         );
 
-        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Dados Exemplar"));
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Dados do Exemplar"));
 
-        jButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/buscaReduzida.png"))); // NOI18N
-        jButton6.setText("Buscar Exemplar");
+        jTextFieldPesquisarExemplar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldPesquisarExemplarKeyReleased(evt);
+            }
+        });
 
-        jLabel6.setText("Descrição");
+        jLabel2.setText("Pesquisar");
 
-        jLabel5.setText("Cod.:ISBN");
+        jTableExemplar.setAutoCreateRowSorter(true);
+        jTableExemplar.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
 
-        jLabel2.setText("Exemplar");
+            },
+            new String [] {
+
+            }
+        ));
+        jTableExemplar.setRowSelectionAllowed(false);
+        jTableExemplar.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTableExemplarMouseClicked(evt);
+            }
+        });
+        jScrollPane5.setViewportView(jTableExemplar);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -248,23 +368,12 @@ public class TelaEmprestimo extends javax.swing.JFrame {
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextField2)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addComponent(jLabel2)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel5)
-                            .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(27, 27, 27)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel6)
-                            .addComponent(jTextField6))))
+                        .addGap(0, 240, Short.MAX_VALUE))
+                    .addComponent(jTextFieldPesquisarExemplar)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton6)
-                .addGap(94, 94, 94))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -272,18 +381,73 @@ public class TelaEmprestimo extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jTextFieldPesquisarExemplar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(jLabel6))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
-                .addComponent(jButton6)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addContainerGap())
+        );
+
+        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Dados do Emprestimo"));
+
+        jLabel3.setText("Nome do Colaborador");
+
+        jLabelTituloDoExemplar.setText("Titulo do Exemplar");
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabelTituloDoExemplar)
+                        .addGap(204, 204, 204))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jTextFieldNomeColaborador, javax.swing.GroupLayout.PREFERRED_SIZE, 322, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jTextFieldTituloDoExemplar, javax.swing.GroupLayout.PREFERRED_SIZE, 322, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabelTituloDoExemplar))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextFieldNomeColaborador, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextFieldTituloDoExemplar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Pesquisar"));
+
+        jTextFieldPesquisarEmprestimo.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextFieldPesquisarEmprestimoKeyReleased(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTextFieldPesquisarEmprestimo)
+                .addContainerGap())
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTextFieldPesquisarEmprestimo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -292,26 +456,34 @@ public class TelaEmprestimo extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(11, 11, 11)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(18, 18, 18)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -319,31 +491,389 @@ public class TelaEmprestimo extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void jButtonRealizarReservaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRealizarReservaActionPerformed
         try {
             TelaReserva reserva = new TelaReserva();
             reserva.setVisible(true);
             dispose();
         } catch (Exception e) {
         }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_jButtonRealizarReservaActionPerformed
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+    private void jButtonVoltarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonVoltarActionPerformed
         try {
             TelaMenuPrincipal menuPrincipal = new TelaMenuPrincipal();
             menuPrincipal.setVisible(true);
             dispose();
         } catch (Exception e) {
         }
-    }//GEN-LAST:event_jButton4ActionPerformed
+    }//GEN-LAST:event_jButtonVoltarActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void jButtonSairActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSairActionPerformed
         System.exit(0);
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_jButtonSairActionPerformed
+
+    private void jTextFieldPesquisarColaboradorKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldPesquisarColaboradorKeyReleased
+        // TODO add your handling code here:
+        try {
+            pesquisarColaboradores(jTextFieldPesquisarColaborador.getText().toLowerCase());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }//GEN-LAST:event_jTextFieldPesquisarColaboradorKeyReleased
+
+    private void jTextFieldPesquisarExemplarKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldPesquisarExemplarKeyReleased
+        try {
+            pesquisarExemplares(jTextFieldPesquisarExemplar.getText().toLowerCase());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }//GEN-LAST:event_jTextFieldPesquisarExemplarKeyReleased
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        try {
+            atualizaTables();
+        } catch (Exception ex) {
+            Logger.getLogger(TelaEmprestimo.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_formWindowOpened
+
+    private void jTableColaboradorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTableColaboradorMouseClicked
+        // TODO add your handling code here:
+        try {
+            if (!editar) {
+                Colaborador c = controleColaborador.getColaborador(modelColaborador.getValueAt(jTableColaborador.getSelectedRow(), 0));
+                jTextFieldNomeColaborador.setText(c.getNome());
+            }
+        } catch (Exception e) {
+        }
+
+
+    }//GEN-LAST:event_jTableColaboradorMouseClicked
+
+    private void jTableExemplarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTableExemplarMouseClicked
+        // TODO add your handling code here:
+        try {
+            if (!editar) {
+                Exemplar ex = controleExemplar.getExemplar(Integer.parseInt(modelExemplar.getValueAt(jTableExemplar.getSelectedRow(), 0)));
+                jTextFieldTituloDoExemplar.setText(ex.getLivro().getTitulo() + "");
+            }
+        } catch (Exception e) {
+        }
+    }//GEN-LAST:event_jTableExemplarMouseClicked
+
+    private void jButtonEmprestarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEmprestarActionPerformed
+        // TODO add your handling code here:
+        habilitaForm(true);
+        jTextFieldNomeColaborador.setText("");
+        jTextFieldTituloDoExemplar.setText("");
+        salvarEmprestimo = true;
+
+    }//GEN-LAST:event_jButtonEmprestarActionPerformed
+
+    private void jButtonCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelarActionPerformed
+        // TODO add your handling code here:
+        habilitaForm(false);
+    }//GEN-LAST:event_jButtonCancelarActionPerformed
+
+    private void jButtonSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSalvarActionPerformed
+        // TODO add your handling code here: 
+        if (salvarEmprestimo) {
+            emprestarExemplar();
+        } else {
+
+        }
+
+    }//GEN-LAST:event_jButtonSalvarActionPerformed
+
+    private void jTextFieldPesquisarEmprestimoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextFieldPesquisarEmprestimoKeyReleased
+        // TODO add your handling code here:
+        try {
+            pesquisarEmprestimos(jTextFieldPesquisarEmprestimo.getText().toLowerCase());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }//GEN-LAST:event_jTextFieldPesquisarEmprestimoKeyReleased
+
+    private void jButtonRenovarEmprestimoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRenovarEmprestimoActionPerformed
+        // TODO add your handling code here:
+
+        try {
+            if (jTableDadosEmprestimos.getSelectedRow() == -1) {
+                JOptionPane.showMessageDialog(null, "Selecione o empréstimo a ser renovado!");
+            } else {
+                if (JOptionPane.showConfirmDialog(null, "Deseja renovar este empréstimo?", "Renovar Empréstimo", JOptionPane.YES_OPTION) == JOptionPane.YES_OPTION) {
+
+                    Emprestimo emprestimo = controleEmprestimo.getEmprestimo(Integer.parseInt(modelEmprestimo.getValueAt(jTableDadosEmprestimos.getSelectedRow(), 0)));
+                    Emprestimo newEmprestimo = new Emprestimo(emprestimo);
+                    Data data = new Data();
+                    newEmprestimo.setDataDoEmprestimo(data.getData());
+                    newEmprestimo.setDataDeDevolucao(data.somarData(7));
+                    controleEmprestimo.altera(emprestimo, newEmprestimo);
+                    JOptionPane.showMessageDialog(null, "Empréstimo renovado com sucesso!");
+                    JOptionPane.showMessageDialog(null, "O COMPROVANTE DA RENOVAÇÃO DO EMPRÉSTIMO FOI ENVIADO POR E-MAIL\n"
+                            + "--------------------------------------------------------------------------------------------------------------------\n"
+                            + "# Titulo do Exemplar :....... " + newEmprestimo.getExemplar().getLivro().getTitulo() + "\n"
+                            + "# Colaborador :................ " + newEmprestimo.getColaborador().getNome() + "\n"
+                            + "# E-mail:........................... " + newEmprestimo.getColaborador().getEmail() + "\n"
+                            + "# Data da Renovação:..... " + newEmprestimo.getDataDoEmprestimo() + "\n"
+                            + "# Data da Devoluçao:...... " + newEmprestimo.getDataDeDevolucao() + "\n"
+                            + "--------------------------------------------------------------------------------------------------------------------\n"
+                            + "\n----------------------------------«««« Biblioteca System »»»»---------------------------------------\n\n", "Comprovante", JOptionPane.PLAIN_MESSAGE);
+                    atualizaTables();
+                }
+            }
+        } catch (Exception e) {
+        }
+    }//GEN-LAST:event_jButtonRenovarEmprestimoActionPerformed
+
+    private void jToggleButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButton3ActionPerformed
+        try {
+            devolverExemplar();
+        } catch (Exception e) {
+        }
+    }//GEN-LAST:event_jToggleButton3ActionPerformed
+
+    private void jTableDadosEmprestimosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTableDadosEmprestimosMouseClicked
+        try {
+            if (editar) {
+                jTextFieldNomeColaborador.setText(jTableDadosEmprestimos.getValueAt(jTableDadosEmprestimos.getSelectedRow(), 1).toString());
+                jTextFieldTituloDoExemplar.setText(jTableDadosEmprestimos.getValueAt(jTableDadosEmprestimos.getSelectedRow(), 2).toString());
+            }
+        } catch (Exception e) {
+        }
+    }//GEN-LAST:event_jTableDadosEmprestimosMouseClicked
+
+    public void habilitaForm(boolean habilita) {
+        jTextFieldNomeColaborador.setEditable(false);
+        jTextFieldTituloDoExemplar.setEditable(false);
+        jTableColaborador.setRowSelectionAllowed(habilita);
+        jTableExemplar.setRowSelectionAllowed(habilita);
+        jTableDadosEmprestimos.setRowSelectionAllowed(!habilita);
+        jButtonEmprestar.setEnabled(!habilita);
+        jButtonRenovarEmprestimo.setEnabled(!habilita);
+        jButtonSalvar.setEnabled(habilita);
+        jButtonCancelar.setEnabled(habilita);
+        jButtonRealizarReserva.setEnabled(!habilita);
+        jToggleButton3.setEnabled(!habilita);
+        jTableColaborador.setEnabled(habilita);
+        jTableExemplar.setEnabled(habilita);
+        jTableDadosEmprestimos.setEnabled(!habilita);
+        editar = !habilita;
+        if (!habilita) {
+            jTableColaborador.clearSelection();
+            jTableExemplar.clearSelection();
+            jTableDadosEmprestimos.clearSelection();
+            jTextFieldNomeColaborador.setText("");
+            jTextFieldTituloDoExemplar.setText("");
+        }
+
+    }
+
+    private void pesquisarColaboradores(String texto) throws Exception {
+        try {
+
+            String[][] matrizFiltro = new String[2][controleColaborador.listagem().size()];
+            String[] matrizS = new String[matrizFiltro[1].length];
+            modelColaborador.update(controleColaborador.listagem());
+            for (int i = 0; i < modelColaborador.getColumnCount(); i++) {
+                for (int j = 0; j < modelColaborador.getRowCount(); j++) {
+                    matrizFiltro[i][j] = modelColaborador.getValueAt(j, i);
+                }
+            }
+            ArrayList<String> matriz = null;
+            if (modelColaborador != null) {
+                if (matrizFiltro.length > 0) {
+                    texto = texto.toLowerCase().trim();
+                    if (texto.length() == 0) {
+                        for (int i = 0; i < matrizFiltro[1].length; i++) {
+                            matrizS[i] = matrizFiltro[0][i];
+                        }
+                    } else {
+                        matriz = new ArrayList<>();
+                        for (int i = 0; i < matrizFiltro[1].length; i++) {
+                            if (matrizFiltro[0][i].toLowerCase().contains(texto)
+                                    || matrizFiltro[1][i].toLowerCase().contains(texto)) {
+                                matriz.add(matrizFiltro[0][i]);
+                            }
+                        }
+                        matrizS = new String[matriz.size()];
+                        for (int i = 0; i < matriz.size(); i++) {
+                            matrizS[i] = matriz.get(i);
+                        }
+                    }
+                }
+                modelColaborador.update(matrizS);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+
+    }
+
+    private void pesquisarExemplares(String texto) throws Exception {
+        try {
+            String[][] matrizFiltro = new String[9][controleExemplar.listagem().size()];
+            String[] matrizS = new String[matrizFiltro[2].length];
+            modelExemplar.update(controleExemplar.listagem());
+            for (int i = 0; i < modelExemplar.getColumnCount(); i++) {
+                for (int j = 0; j < modelExemplar.getRowCount(); j++) {
+                    matrizFiltro[i][j] = modelExemplar.getValueAt(j, i);
+                }
+            }
+            ArrayList<String> matriz = null;
+            if (matrizFiltro.length > 0) {
+                texto = texto.toLowerCase().trim();
+                if (texto.length() == 0) {
+                    for (int i = 0; i < matrizFiltro[1].length; i++) {
+                        matrizS[i] = matrizFiltro[0][i];
+                    }
+                } else {
+                    matriz = new ArrayList<>();
+                    for (int i = 0; i < matrizFiltro[1].length; i++) {
+                        if (matrizFiltro[0][i].toLowerCase().contains(texto)
+                                || matrizFiltro[0][i].toLowerCase().contains(texto)
+                                || matrizFiltro[1][i].toLowerCase().contains(texto)
+                                || matrizFiltro[2][i].toLowerCase().contains(texto)) {
+                            matriz.add(matrizFiltro[0][i]);
+                        }
+                    }
+                    matrizS = new String[matriz.size()];
+                    for (int i = 0; i < matriz.size(); i++) {
+                        matrizS[i] = matriz.get(i);
+                    }
+                }
+            }
+            modelExemplar.update(matrizS);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }
+
+    private void pesquisarEmprestimos(String texto) throws Exception {
+        try {
+            String[][] matrizFiltro = new String[9][controleEmprestimo.listagem().size()];
+            String[] matrizS = new String[matrizFiltro[2].length];
+            modelEmprestimo.update(controleEmprestimo.listagem());
+            for (int i = 0; i < modelEmprestimo.getColumnCount(); i++) {
+                for (int j = 0; j < modelEmprestimo.getRowCount(); j++) {
+                    matrizFiltro[i][j] = modelEmprestimo.getValueAt(j, i);
+                }
+            }
+            ArrayList<String> matriz = null;
+            if (matrizFiltro.length > 0) {
+                texto = texto.toLowerCase().trim();
+                if (texto.length() == 0) {
+                    for (int i = 0; i < matrizFiltro[1].length; i++) {
+                        matrizS[i] = matrizFiltro[0][i];
+                    }
+                } else {
+                    matriz = new ArrayList<>();
+                    for (int i = 0; i < matrizFiltro[1].length; i++) {
+                        if (matrizFiltro[0][i].toLowerCase().contains(texto)
+                                || matrizFiltro[0][i].toLowerCase().contains(texto)
+                                || matrizFiltro[1][i].toLowerCase().contains(texto)
+                                || matrizFiltro[2][i].toLowerCase().contains(texto)
+                                || matrizFiltro[3][i].toLowerCase().contains(texto)
+                                || matrizFiltro[4][i].toLowerCase().contains(texto)) {
+                            matriz.add(matrizFiltro[0][i]);
+                        }
+                    }
+                    matrizS = new String[matriz.size()];
+                    for (int i = 0; i < matriz.size(); i++) {
+                        matrizS[i] = matriz.get(i);
+                    }
+                }
+            }
+            modelEmprestimo.update(matrizS);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }
+
+    private void emprestarExemplar() {
+        try {
+            if (!jTextFieldNomeColaborador.getText().equals("")) {
+                if (!jTextFieldTituloDoExemplar.getText().equals("")) {
+                    Exemplar exemplar = controleExemplar.getExemplar(Integer.parseInt(modelExemplar.getValueAt(jTableExemplar.getSelectedRow(), 0)));
+                    if (exemplar.getStatusEmprestimo().equals(TipoDeStatusEmprestimoExemplar.INDISPONIVEL)) {
+                        JOptionPane.showMessageDialog(null, "Este exemplar está indisponível para impréstimo!", "Indisponível", JOptionPane.ERROR_MESSAGE);
+                    } else {
+
+                        if (exemplar.getStatusReserva().equals(StatusReserva.RESERVADO)) {
+                            JOptionPane.showMessageDialog(null, "Este exemplar está reservado!", "Reservado", JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            Exemplar novoExemplar = new Exemplar(exemplar);
+                            novoExemplar.setStatusEmprestimo(TipoDeStatusEmprestimoExemplar.INDISPONIVEL);
+                            Data data = new Data();
+                            controleExemplar.alterar(exemplar, novoExemplar);
+                            Colaborador c = controleColaborador.getColaborador(jTextFieldNomeColaborador.getText());
+                            Emprestimo newEmprestimo = new Emprestimo(c, exemplar);
+                            newEmprestimo.setDataDoEmprestimo(data.getData());
+                            newEmprestimo.setDataDeDevolucao(data.somarData(7));
+                            controleEmprestimo.incluir(newEmprestimo);
+                            habilitaForm(false);
+                            atualizaTables();
+                            JOptionPane.showMessageDialog(null, "Emprestimo realizado com sucesso!");
+                            JOptionPane.showMessageDialog(null, "O COMPROVANTE DO EMPRÉSTIMO FOI ENVIADO POR E-MAIL\n"
+                                    + "--------------------------------------------------------------------------------------------------------------------\n"
+                                    + "# Titulo do Exemplar :....... " + newEmprestimo.getExemplar().getLivro().getTitulo() + "\n"
+                                    + "# Colaborador :................ " + newEmprestimo.getColaborador().getNome() + "\n"
+                                    + "# E-mail:........................... " + newEmprestimo.getColaborador().getEmail() + "\n"
+                                    + "# Data da Emprestimo:..... " + newEmprestimo.getDataDoEmprestimo() + "\n"
+                                    + "# Data da Devoluçao:...... " + newEmprestimo.getDataDeDevolucao() + "\n"
+                                    + "--------------------------------------------------------------------------------------------------------------------\n"
+                                    + "\n----------------------------------«««« Biblioteca System »»»»---------------------------------------\n\n", "Comprovante", JOptionPane.PLAIN_MESSAGE);
+                        }
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Selecione o Exemplar", "Selecione", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Selecione o Colaborador!", "Selecione", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+    }
+
+    public void devolverExemplar() throws Exception {
+        try {
+            if (jTableDadosEmprestimos.getSelectedRow() == -1) {
+                JOptionPane.showMessageDialog(null, "Selecione o emprestimo a ser devolvido!", "Selecione", JOptionPane.ERROR_MESSAGE);
+            } else {
+                Emprestimo emprestimo = controleEmprestimo.getEmprestimo(Integer.parseInt(modelEmprestimo.getValueAt(jTableDadosEmprestimos.getSelectedRow(), 0)));
+                Exemplar exemplar = emprestimo.getExemplar();
+                Exemplar atualExemplar = new Exemplar(exemplar);
+
+                atualExemplar.setStatusEmprestimo(TipoDeStatusEmprestimoExemplar.DISPONIVEL);
+
+                controleExemplar.alterar(exemplar, atualExemplar);
+                controleEmprestimo.deletar(emprestimo);
+
+                Devolucao dev = new Devolucao(emprestimo);
+                controleDevolucao.incluir(dev);
+
+                atualizaTables();
+                jTextFieldNomeColaborador.setText("");
+                jTextFieldTituloDoExemplar.setText("");
+                JOptionPane.showMessageDialog(null, "Exemplar devolvido com sucesso!");
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+
+    }
+
+    public void atualizaTables() throws Exception {
+        try {
+            modelColaborador.update(controleColaborador.listagem());
+            modelExemplar.update(controleExemplar.listagem());
+            modelEmprestimo.update(controleEmprestimo.listagem());
+        } catch (Exception e) {
+            throw e;
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -381,31 +911,37 @@ public class TelaEmprestimo extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
+    private javax.swing.JButton jButtonCancelar;
+    private javax.swing.JButton jButtonEmprestar;
+    private javax.swing.JButton jButtonRealizarReserva;
+    private javax.swing.JButton jButtonRenovarEmprestimo;
+    private javax.swing.JButton jButtonSair;
+    private javax.swing.JButton jButtonSalvar;
+    private javax.swing.JButton jButtonVoltar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabelTituloDoExemplar;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTable jTable2;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField6;
+    private javax.swing.JTable jTableColaborador;
+    private javax.swing.JTable jTableDadosEmprestimos;
+    private javax.swing.JTable jTableExemplar;
+    private javax.swing.JTextField jTextFieldNomeColaborador;
+    private javax.swing.JTextField jTextFieldPesquisarColaborador;
+    private javax.swing.JTextField jTextFieldPesquisarEmprestimo;
+    private javax.swing.JTextField jTextFieldPesquisarExemplar;
+    private javax.swing.JTextField jTextFieldTituloDoExemplar;
+    private javax.swing.JButton jToggleButton3;
     // End of variables declaration//GEN-END:variables
 }
